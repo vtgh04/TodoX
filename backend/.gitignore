@@ -1,0 +1,3 @@
+.env
+ConnectionStringMongodb.txt
+node_modules/
