@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#070A13" />
+    </linearGradient>
+
+    <!-- Panel Gradients -->
+    <linearGradient id="frontend-panel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8" />
+    </linearGradient>
+    <linearGradient id="backend-panel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Element Gradients -->
+    <linearGradient id="cyan-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="indigo-violet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="emerald-teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#14B8A6" />
+    </linearGradient>
+    <linearGradient id="pink-rose" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#F43F5E" />
+    </linearGradient>
+    <linearGradient id="amber-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#EF4444" />
+    </linearGradient>
+
+    <!-- Filters for dropshadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Marker Arrow -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94A3B8" />
+    </marker>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#06B6D4" />
+    </marker>
+    <marker id="arrow-indigo" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366F1" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="650" rx="16" fill="url(#bg-grad)" />
+  <rect width="998" height="648" x="1" y="1" rx="15" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" />
+
+  <!-- Diagram Title -->
+  <text x="50" y="55" font-family="'Inter', system-ui, sans-serif" font-size="24" font-weight="800" fill="#F8FAFC" letter-spacing="-0.025em">TodoX Design Pattern &amp; Architecture</text>
+  <text x="50" y="78" font-family="'Inter', system-ui, sans-serif" font-size="14" fill="#94A3B8">Visualizing Frontend (Feature-Based + Zustand) &amp; Backend (MVC + Service + Repository)</text>
+
+  <!-- ================= FRONTEND CONTAINER ================= -->
+  <g transform="translate(50, 110)" filter="url(#shadow)">
+    <!-- Container Background -->
+    <rect width="420" height="480" rx="12" fill="url(#frontend-panel)" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+    <rect width="420" height="480" rx="12" fill="none" stroke="url(#cyan-blue)" stroke-width="1.5" stroke-opacity="0.15" />
+    
+    <!-- Title -->
+    <rect width="120" height="24" x="20" y="-12" rx="12" fill="#0284C7" />
+    <text x="80" y="4" font-family="'Inter', system-ui, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.05em">FRONTEND</text>
+    <text x="20" y="32" font-family="'Inter', system-ui, sans-serif" font-size="15" font-weight="bold" fill="#38BDF8">Feature-Based &amp; Zustand</text>
+
+    <!-- Component Box: Pages/Views -->
+    <g transform="translate(30, 60)">
+      <rect width="360" height="65" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="65" rx="3" fill="url(#cyan-blue)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Page / Views Layer</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">App.jsx, HomePage.jsx, loginPage.jsx</text>
+    </g>
+
+    <!-- Component Box: Components -->
+    <g transform="translate(30, 160)">
+      <rect width="360" height="75" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="75" rx="3" fill="url(#indigo-violet)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Feature Components (UI)</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">features/auth/components (LoginForm, RegisterForm)</text>
+      <text x="25" y="60" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">features/todos/components (TaskList, addTask)</text>
+    </g>
+
+    <!-- Component Box: Zustand Stores -->
+    <g transform="translate(30, 270)">
+      <rect width="360" height="75" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="75" rx="3" fill="url(#emerald-teal)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Zustand Store (Global State)</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">useAuthStore.js (tracks user state, token)</text>
+      <text x="25" y="60" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">useTodoStore.js (manages tasks &amp; query filters)</text>
+    </g>
+
+    <!-- Component Box: Services -->
+    <g transform="translate(30, 380)">
+      <rect width="360" height="65" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="65" rx="3" fill="url(#pink-rose)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Service Layer (API Client)</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">authService.js, todoService.js (Axios wrapper)</text>
+    </g>
+
+    <!-- Inner Connections (Frontend) -->
+    <!-- Page -> Component -->
+    <path d="M 210 125 L 210 160" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+    <!-- Component <-> Store (Two-way reactive sync) -->
+    <path d="M 180 235 L 180 270" fill="none" stroke="#6366F1" stroke-dasharray="3,3" stroke-width="2" marker-end="url(#arrow-indigo)" />
+    <path d="M 240 270 L 240 235" fill="none" stroke="#10B981" stroke-dasharray="3,3" stroke-width="2" marker-end="url(#arrow)" />
+    <!-- Store -> Service -->
+    <path d="M 210 345 L 210 380" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+  </g>
+
+  <!-- ================= MIDDLE CONNECTOR (HTTP) ================= -->
+  <g transform="translate(470, 110)">
+    <!-- API Request Line (Client -> Server) -->
+    <path d="M 0 412 L 60 412 L 60 90 L 60 90" fill="none" stroke="url(#cyan-blue)" stroke-width="3" stroke-dasharray="4,4" filter="url(#glow-cyan)" />
+    <path d="M 0 412 L 60 412 L 60 90 L 60 90" fill="none" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+    <rect x="-10" y="240" width="80" height="24" rx="12" fill="#0F172A" stroke="#0284C7" stroke-width="1" />
+    <text x="30" y="256" font-family="'Inter', system-ui, sans-serif" font-size="10" font-weight="bold" fill="#38BDF8" text-anchor="middle">HTTP REQ</text>
+
+    <!-- API Response Line (Server -> Client) -->
+    <path d="M 60 130 L 60 130 L 60 435 L 0 435" fill="none" stroke="#F43F5E" stroke-width="2" marker-end="url(#arrow)" />
+    <rect x="20" y="160" width="80" height="24" rx="12" fill="#0F172A" stroke="#E11D48" stroke-width="1" />
+    <text x="60" y="176" font-family="'Inter', system-ui, sans-serif" font-size="10" font-weight="bold" fill="#F43F5E" text-anchor="middle">HTTP RES</text>
+  </g>
+
+  <!-- ================= BACKEND CONTAINER ================= -->
+  <g transform="translate(530, 110)" filter="url(#shadow)">
+    <!-- Container Background -->
+    <rect width="420" height="480" rx="12" fill="url(#backend-panel)" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+    <rect width="420" height="480" rx="12" fill="none" stroke="url(#indigo-violet)" stroke-width="1.5" stroke-opacity="0.15" />
+    
+    <!-- Title -->
+    <rect width="120" height="24" x="20" y="-12" rx="12" fill="#4F46E5" />
+    <text x="80" y="4" font-family="'Inter', system-ui, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.05em">BACKEND</text>
+    <text x="20" y="32" font-family="'Inter', system-ui, sans-serif" font-size="15" font-weight="bold" fill="#818CF8">MVC + Service + Repo</text>
+
+    <!-- Component Box: Router & Middleware -->
+    <g transform="translate(30, 60)">
+      <rect width="360" height="65" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="65" rx="3" fill="url(#indigo-violet)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Routes &amp; Middleware Layer</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">tasksRouters.js, authMiddleware.js (protect)</text>
+    </g>
+
+    <!-- Component Box: Controllers -->
+    <g transform="translate(30, 160)">
+      <rect width="360" height="65" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="65" rx="3" fill="url(#pink-rose)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Controllers (Thin API Interface)</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">taskController.js, authController.js (thin endpoints)</text>
+    </g>
+
+    <!-- Component Box: Services -->
+    <g transform="translate(30, 260)">
+      <rect width="360" height="65" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="65" rx="3" fill="url(#cyan-blue)" />
+      <text x="25" y="28" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Service Layer (Business Logic)</text>
+      <text x="25" y="46" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">taskService.js, authService.js (calculates &amp; formats)</text>
+    </g>
+
+    <!-- Component Box: Repositories -->
+    <g transform="translate(30, 350)">
+      <rect width="360" height="55" rx="8" fill="#1E293B" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+      <rect width="6" height="55" rx="3" fill="url(#emerald-teal)" />
+      <text x="25" y="25" font-family="'Inter', system-ui, sans-serif" font-size="13" font-weight="bold" fill="#F8FAFC">Repository Layer (Data Access)</text>
+      <text x="25" y="41" font-family="'Inter', system-ui, sans-serif" font-size="11" fill="#94A3B8">taskRepository.js, authRepository.js (queries DB)</text>
+    </g>
+
+    <!-- Component Box: Models / DB -->
+    <g transform="translate(30, 420)">
+      <rect width="360" height="45" rx="8" fill="#0F172A" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+      <rect width="6" height="45" rx="3" fill="url(#amber-orange)" />
+      <text x="25" y="20" font-family="'Inter', system-ui, sans-serif" font-size="12" font-weight="bold" fill="#F1F5F9">Mongoose Models &amp; Database</text>
+      <text x="25" y="34" font-family="'Inter', system-ui, sans-serif" font-size="10" fill="#64748B">user.js, task.js -> MongoDB Atlas</text>
+    </g>
+
+    <!-- Inner Connections (Backend) -->
+    <!-- Routes -> Controllers -->
+    <path d="M 210 125 L 210 160" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+    <!-- Controllers -> Services -->
+    <path d="M 210 225 L 210 260" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+    <!-- Services -> Repositories -->
+    <path d="M 210 325 L 210 350" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+    <!-- Repositories -> Models/DB -->
+    <path d="M 210 405 L 210 420" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" />
+  </g>
+</svg>
