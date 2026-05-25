@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const TaskListPagination = ({ page, totalPages, setPage }) => {
+const TaskListPagination = ({ page, totalPages, setPage, language }) => {
     if (totalPages <= 1) return null;
 
     const handlePrev = () => {
@@ -29,7 +29,7 @@ const TaskListPagination = ({ page, totalPages, setPage }) => {
                 }`}
             >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                Trước
+                {language === 'vi' ? 'Trước' : 'Prev'}
             </button>
 
             {pages.map((p) => (
@@ -55,7 +55,7 @@ const TaskListPagination = ({ page, totalPages, setPage }) => {
                         : 'bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800'
                 }`}
             >
-                Sau
+                {language === 'vi' ? 'Sau' : 'Next'}
                 <ChevronRight className="w-3.5 h-3.5" />
             </button>
         </div>

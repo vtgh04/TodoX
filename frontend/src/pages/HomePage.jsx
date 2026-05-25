@@ -191,6 +191,7 @@ const HomePage = () => {
                             page={page} 
                             totalPages={totalPages} 
                             setPage={setPage} 
+                            language={language}
                         />
                         <DateTimeFilter 
                             timeFilter={timeFilter} 
