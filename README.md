@@ -22,7 +22,9 @@ TodoX follows a clean MVC-lite (Model-View-Controller) backend architecture pair
   - *This Week*
   - *This Month*
   - *All*
-- **State Transitioning**: Toggle tasks between `active` and `complete` states with automatic tracking of completion timestamps (`completedAt`).
+- **Interactive DatePicker Filter**: Access a native date picker overlaying the calendar icon to filter tasks for any specific custom date. Built with a cross-browser transparent click overlay and fully controlled input state.
+- **Timezone-Aware Querying**: Native adjustment of MongoDB UTC timestamps to Vietnam Standard Time (UTC+7) for both specific custom date searches and the "Today" preset range.
+- **State Transitioning**: Toggle tasks between `ACTIVE` and `COMPLETED` states with automatic tracking of completion timestamps (`completedAt`).
 - **Backend Pagination**: Scalable query pagination to prevent loading large datasets and optimize rendering.
 - **Operational Metrics**: Real-time counter metrics displaying active vs. completed tasks for instant workload visualization.
 
@@ -58,15 +60,15 @@ TodoX/
 │   │   │   └── db.js               # Database connection and DNS setup
 │   │   ├── controllers/
 │   │   │   └── taskController.js   # Controller containing CRUD logic
-│   │   ├── models/
-│   │   │   └── taskModel.js        # Mongoose Schema and Model definitions
+│   │   ├── model/
+│   │   │   └── task.js             # Mongoose Schema and Model definitions
 │   │   ├── routes/
 │   │   │   └── tasksRouters.js     # REST API route mappings
 │   │   └── server.js               # Entry point of the Express server
 │   ├── .env                        # Local environment secrets (ignored)
 │   ├── .gitignore                  # Git exclude patterns
 │   └── package.json                # Project dependencies and script declarations
-└── fontend/                        # React SPA (Tailwind CSS v4 + shadcn/ui)
+└── frontend/                       # React SPA (Tailwind CSS v4 + lucide-react)
 ```
 
 ---
@@ -110,7 +112,7 @@ TodoX/
 
 1. Navigate to the frontend directory:
    ```bash
-   cd fontend
+   cd frontend
    ```
 2. Install dependencies:
    ```bash
@@ -132,7 +134,7 @@ All requests and responses use JSON formatting. The base URL for task-related en
 | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/api/tasks` | Fetch tasks (Supports filters &amp; pagination) | None | `200 OK` |
 | **POST** | `/api/tasks` | Create a new task | `{ "title": "String" }` | `201 Created` |
-| **PUT** | `/api/tasks/:id` | Update task details / status | `{ "title": "String", "status": "active/complete" }` | `200 OK` |
+| **PUT** | `/api/tasks/:id` | Update task details / status | `{ "title": "String", "status": "ACTIVE/COMPLETED" }` | `200 OK` |
 | **DELETE** | `/api/tasks/:id` | Permanently remove a task | None | `200 OK` |
 
 ### Database Schema Specification (`Task`)
@@ -146,8 +148,8 @@ All requests and responses use JSON formatting. The base URL for task-related en
   },
   status: {
     type: String,
-    enum: ['active', 'complete'],
-    default: 'active'
+    enum: ['ACTIVE', 'COMPLETED'],
+    default: 'ACTIVE'
   },
   completedAt: {
     type: Date,
@@ -163,5 +165,6 @@ All requests and responses use JSON formatting. The base URL for task-related en
 ## 🔒 Production & Security Standards
 
 - **Environment Separation**: Secrets like MongoDB connection strings are excluded from version control via `.gitignore` using `.env` variables.
-- **Process Exit Handler**: In the event of a critical database connection failure, the process gracefully stops (`process.exit(1)`) to avoid hanging in an unstable zombie state.
+- **Fail-Safe Server Bindings**: The Express server binds and starts listening on port `5001` immediately upon launch rather than waiting for MongoDB. This prevents frontend proxy connection dropouts (`ECONNREFUSED`).
+- **Resilient DB Failures**: Connection errors are caught and logged with actionable advice (e.g. Atlas IP whitelist checking) rather than terminating the process via `process.exit(1)`, preserving hot-reload and keep-alive processes.
 - **Native File Watcher**: Uses Node's built-in `--watch` flag for light-weight development processes instead of heavy third-party watchers like `nodemon`, optimizing memory consumption on Windows hosts.
