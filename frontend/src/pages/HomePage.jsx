@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import AddTask from '../components/addTask';
 import StatsAndFilters from '../components/StatsAndFilters';
 import TaskList from '../components/taskList';
-import TaskListPagination from '../components/tasklistPagination';
+import TaskListPagination from '../components/TaskListPagination';
 import DateTimeFilter from '../components/DateTimeFilter';
 import Footer from '../components/footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
