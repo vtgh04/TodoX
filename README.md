@@ -1,74 +1,107 @@
-# TodoX — Production-Ready MERN Fullstack Application
+# TodoX — Fullstack MERN 2025: React + Node + MongoDB + Tailwind 4 + Shadcn
 
 ![TodoX Banner](doc/SVG/banner.svg)
 
-**TodoX** is a modern, high-performance, fullstack Todo application designed to bridge the gap between academic syntax knowledge and professional software engineering. Built from the ground up using the **MERN Stack (MongoDB, Express, React, Node.js)**, the project features a sleek dark-mode UI styled with **Tailwind CSS v4** and **shadcn/ui**, backed by a robust RESTful API with advanced filtering, pagination, and real-time statistics.
+**TodoX** is a modern, high-performance, fullstack Todo application built to demonstrate professional engineering standards. By leveraging the **MERN Stack (MongoDB, Express, React, Node.js)**, the application integrates a sleek, responsive, and responsive dark-mode styling utilizing **Tailwind CSS v4** and customized interactive elements, backed by a robust and resilient RESTful API featuring timezone-safe database filtering, custom CORS handling, and pagination.
 
 ---
 
-## 🏛️ System Architecture
+## 🏗️ System Architecture & Data Flow
 
-TodoX follows a clean MVC-lite (Model-View-Controller) backend architecture paired with a modular React frontend component structure.
+TodoX follows a clean separation of concerns, decoupling the frontend Single Page Application (SPA) from the stateless REST API. 
 
-![System Architecture](doc/SVG/architecture.svg)
+![System Architecture Diagram](doc/SVG/architecture.svg)
+
+### Key Architectural Decisions:
+* **Vite API Proxying:** During development, the frontend dev server proxies `/api` requests to port `5001`. This bypasses browser cross-origin limits locally without exposing the backend directly, matching standard microservice architectures.
+* **MVC-Lite Controller Pattern:** The backend decouples HTTP routing from database operations. Controllers isolate the Mongoose schema actions, making route mappings declarative and clean.
+* **Resilient Startup & Keep-Alive:** Unlike standard configurations where database connection failures crash the server process via `process.exit(1)`, TodoX binds the Express port immediately on launch. Database connection errors are captured asynchronously and logged with troubleshooting instructions, ensuring development file-watchers (`--watch`) remain alive.
 
 ---
 
-## ⚡ Core Features
+## ⚡ Core Engineering Features
 
-- **Full CRUD Engine**: Seamlessly Create, Read, Update, and Delete tasks with validation and status tracking.
-- **Time-based Smart Filters**: Filter tasks dynamically based on deadlines or creation dates:
-  - *Today*
-  - *This Week*
-  - *This Month*
-  - *All*
-- **Interactive DatePicker Filter**: Access a native date picker overlaying the calendar icon to filter tasks for any specific custom date. Built with a cross-browser transparent click overlay and fully controlled input state.
-- **Timezone-Aware Querying**: Native adjustment of MongoDB UTC timestamps to Vietnam Standard Time (UTC+7) for both specific custom date searches and the "Today" preset range.
-- **State Transitioning**: Toggle tasks between `ACTIVE` and `COMPLETED` states with automatic tracking of completion timestamps (`completedAt`).
-- **Backend Pagination**: Scalable query pagination to prevent loading large datasets and optimize rendering.
-- **Operational Metrics**: Real-time counter metrics displaying active vs. completed tasks for instant workload visualization.
+### 1. Timezone-Safe Date Query Engine (UTC+7)
+MongoDB stores all date structures in UTC. When querying tasks created on a specific calendar day in Vietnam (UTC+7), a naive UTC query leads to date shifting (tasks appearing on the wrong day). TodoX isolates date ranges on the backend controller by manually mapping dates relative to the UTC+7 offset:
+* **Custom Date Filter:** Computes bounds between `YYYY-MM-DDT00:00:00.000+07:00` and `YYYY-MM-DDT23:59:59.999+07:00` in UTC, ensuring tasks created within the local Vietnamese day match perfectly.
+* **Today's Filter:** Shifts the server's current timestamp to UTC+7 before computing the boundaries of "today" dynamically.
+
+### 2. Cross-Browser Native DatePicker Activation
+Triggering native date picker dialogs programmatically can fail or behave inconsistently across desktop browsers (like Chrome/Edge) and mobile platforms (Safari/iOS). TodoX solves this with a clean UI overlay design:
+* An invisible `<input type="date">` (`opacity-0 cursor-pointer absolute inset-0`) overlays the custom Lucide-react `Calendar` icon button.
+* When the user clicks the icon button, they interact directly with the transparent input.
+* An `onClick` handler calls the native `showPicker()` API wrapped in a fail-safe try-catch, guaranteeing the picker pop-up displays instantly across all modern web environments.
+
+### 3. Persistent Bilingual Context (VI/EN)
+A custom, state-controlled language switcher card is fixed at the top-right corner of the viewport.
+* Supports instantaneous toggle between Tiếng Việt (🇻🇳) and English (🇺🇸).
+* Component states (headers, forms, status badges, placeholders, and dynamic footer status messages) are localized immediately upon toggle.
+* Language preference is synchronized and stored in `localStorage` (`todo_lang`), maintaining the state across page reloads.
+
+### 4. Native CORS & Resilient Connection
+* **Zero-Dependency CORS:** Uses a native custom CORS middleware in Express to intercept preflight `OPTIONS` requests and authorize origin headers without pulling in heavy third-party NPM packages.
+* **Google DNS Fallback:** Sets node's DNS resolution servers to Google (`8.8.8.8`) inside the database config block, resolving potential Atlas connection drops (`ECONNREFUSED`) caused by specific ISP blocks on MongoDB SRV records.
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Node.js (v24.x)**: Executing server environment using native ES Modules and modern `--watch` file-monitoring.
-- **Express.js (v4.18.2)**: Lightweight web framework for REST API routing and middleware management.
-- **Mongoose (v9.x)**: Elegant MongoDB object modeling for schema definition, validation, and database operations.
-- **Dotenv**: Separation of configuration and secrets from the codebase.
-- **Custom DNS Override**: Programmatic Google DNS lookup integration (`8.8.8.8`) to bypass ISP-level DNS SRV query blocks (common in specific regions/networks).
+* **Node.js (v24.x):** Fast execution environment utilizing native ES Modules and modern `--watch` file monitoring.
+* **Express.js (v4.18.x):** Fast, minimalist web framework for REST API routing and middleware management.
+* **Mongoose (v9.x):** Schema definition, strict typing, and validation.
+* **Dotenv:** Strict separation of environment configurations from source code.
 
 ### Frontend
-- **React.js**: Single-page application development.
-- **Tailwind CSS v4**: Utility-first CSS framework utilizing modern styling engines.
-- **shadcn/ui**: Premium, accessible, copy-paste components adhering to modern UX standards.
+* **React.js (v19.x):** Modern component lifecycle management and hooks.
+* **Tailwind CSS v4:** Modern utility-first styling utilizing HSL CSS variable palettes and custom animations.
+* **Lucide React:** Premium modern iconography.
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Directory Structure
 
 ```text
 TodoX/
 ├── doc/
 │   └── SVG/
-│       ├── banner.svg              # SVG Banner image
-│       └── architecture.svg        # SVG Architecture diagram
+│       ├── banner.svg              # SVG Marketing Banner
+│       └── architecture.svg        # SVG System Architecture Diagram
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── db.js               # Database connection and DNS setup
+│   │   │   └── db.js               # MongoDB connection and Google DNS setup
 │   │   ├── controllers/
-│   │   │   └── taskController.js   # Controller containing CRUD logic
+│   │   │   └── taskController.js   # REST API Controllers (CRUD + Filtering)
 │   │   ├── model/
-│   │   │   └── task.js             # Mongoose Schema and Model definitions
+│   │   │   └── task.js             # Mongoose Schema (ACTIVE/COMPLETED status)
 │   │   ├── routes/
-│   │   │   └── tasksRouters.js     # REST API route mappings
+│   │   │   └── tasksRouters.js     # REST Routing declarations
 │   │   └── server.js               # Entry point of the Express server
-│   ├── .env                        # Local environment secrets (ignored)
-│   ├── .gitignore                  # Git exclude patterns
-│   └── package.json                # Project dependencies and script declarations
-└── frontend/                       # React SPA (Tailwind CSS v4 + lucide-react)
+│   ├── .env                        # Local secrets configuration (Ignored)
+│   ├── .gitignore                  # Git ignore rules for node_modules and env
+│   └── package.json                # Server scripts and dependencies
+└── frontend/                       # React Client Codebase
+    ├── src/
+    │   ├── components/
+    │   │   ├── ui/                 # Reusable UI component blocks
+    │   │   ├── Header.jsx          # Header with localized subtitle
+    │   │   ├── addTask.jsx         # Task creation form
+    │   │   ├── StatsAndFilters.jsx # Filter state toggles & stats
+    │   │   ├── taskList.jsx        # Localized list renderer
+    │   │   ├── TaskListPagination.jsx # Page change component
+    │   │   ├── DateTimeFilter.jsx  # Customized calendar filter
+    │   │   └── LanguageSwitcher.jsx # Bilingual trigger card
+    │   ├── lib/
+    │   │   ├── axios.js            # Unified Axios instance
+    │   │   ├── data.js             # Local static configuration
+    │   │   └── utils.js            # UI style mergers
+    │   ├── pages/
+    │   │   └── HomePage.jsx        # Primary page controller
+    │   ├── App.jsx                 # Client entry point
+    │   └── main.jsx                # React DOM renderer
+    ├── vite.config.js              # Vite bundler configuration (Proxy settings)
+    └── package.json                # Frontend build commands
 ```
 
 ---
@@ -76,66 +109,54 @@ TodoX/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v20+ recommended)
-- **NPM** (v10+)
-- **MongoDB Atlas Account** (Free Cluster)
+* **Node.js** (v20+ recommended)
+* **NPM** (v10+)
+* **MongoDB Atlas** database URI
 
 ---
 
-### Backend Setup
+### Installation & Run
 
-1. Navigate to the backend directory:
+1. **Clone the repository:**
    ```bash
-   cd backend
+   git clone https://github.com/vtgh04/TodoX.git
+   cd TodoX
    ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure Environment Variables. Create a `.env` file in the `backend/` directory:
+
+2. **Backend Configuration:**
+   Create a `.env` file in the `backend/` directory:
    ```env
    ConnectionStringMongodb="mongodb+srv://<username>:<password_url_encoded>@<cluster>.mongodb.net/<db_name>?appName=Cluster0"
    PORT=5001
    ```
    > [!IMPORTANT]
-   > If your database password contains special characters like `@`, you **must** encode it as `%40` inside the connection string to prevent parsing errors.
+   > If your Atlas password contains special characters (e.g., `@`), URL-encode them (e.g., replace `@` with `%40`) to prevent parsing errors inside the connection driver.
 
-4. Start the server in Development mode (with native hot-reload):
+3. **Build the Application:**
+   Run the master build script from the root directory to configure all dependencies and pre-compile the frontend client:
    ```bash
-   npm run dev
+   npm run build
    ```
-   The backend will be available at `http://localhost:5001`.
 
----
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
+4. **Start the Production Servers:**
+   Launch the unified backend hosting environment:
    ```bash
-   cd frontend
+   npm run start
    ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the React development server:
-   ```bash
-   npm run dev
-   ```
-   The frontend will be available at `http://localhost:5173`.
+   The application will serve the built client bundle and backend API unified at `http://localhost:5001`.
 
 ---
 
 ## 🔌 API Reference
 
-All requests and responses use JSON formatting. The base URL for task-related endpoints is `/api/tasks`.
+The backend communicates strictly in JSON format. The base URL is `/api/tasks`.
 
 | Method | Endpoint | Description | Request Body | Response Code |
 | :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/api/tasks` | Fetch tasks (Supports filters &amp; pagination) | None | `200 OK` |
-| **POST** | `/api/tasks` | Create a new task | `{ "title": "String" }` | `201 Created` |
-| **PUT** | `/api/tasks/:id` | Update task details / status | `{ "title": "String", "status": "ACTIVE/COMPLETED" }` | `200 OK` |
-| **DELETE** | `/api/tasks/:id` | Permanently remove a task | None | `200 OK` |
+| **GET** | `/api/tasks` | Fetch tasks matching parameters (pagination, status, date) | None | `200 OK` |
+| **POST** | `/api/tasks` | Insert a new task | `{ "title": "String" }` | `201 Created` |
+| **PUT** | `/api/tasks/:id` | Update task title, status, or completedAt | `{ "title": "String", "status": "ACTIVE/COMPLETED", "completedAt": Date }` | `200 OK` |
+| **DELETE** | `/api/tasks/:id` | Purge a task from the database | None | `200 OK` |
 
 ### Database Schema Specification (`Task`)
 
@@ -155,16 +176,7 @@ All requests and responses use JSON formatting. The base URL for task-related en
     type: Date,
     default: null
   },
-  createdAt: Date, // Automatically handled by Mongoose timestamps
-  updatedAt: Date  // Automatically handled by Mongoose timestamps
+  createdAt: Date, // Auto-generated timestamp
+  updatedAt: Date  // Auto-generated timestamp
 }
 ```
-
----
-
-## 🔒 Production & Security Standards
-
-- **Environment Separation**: Secrets like MongoDB connection strings are excluded from version control via `.gitignore` using `.env` variables.
-- **Fail-Safe Server Bindings**: The Express server binds and starts listening on port `5001` immediately upon launch rather than waiting for MongoDB. This prevents frontend proxy connection dropouts (`ECONNREFUSED`).
-- **Resilient DB Failures**: Connection errors are caught and logged with actionable advice (e.g. Atlas IP whitelist checking) rather than terminating the process via `process.exit(1)`, preserving hot-reload and keep-alive processes.
-- **Native File Watcher**: Uses Node's built-in `--watch` flag for light-weight development processes instead of heavy third-party watchers like `nodemon`, optimizing memory consumption on Windows hosts.
