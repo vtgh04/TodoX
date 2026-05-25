@@ -68,6 +68,13 @@ TodoX incorporates industry-standard architectural and structural design pattern
 ![Design Patterns Diagram](doc/SVG/design_patterns.svg)
 
 ### Applied Design Patterns
+*   **Service & Repository Pattern (Backend):**
+    *   *Service Layer:* Business logic is abstracted out of controllers into services (e.g., `authService`, `taskService`), ensuring the Single Responsibility Principle.
+    *   *Repository Pattern:* Database queries (Mongoose) are isolated into repositories (e.g., `authRepository`, `taskRepository`), keeping services agnostic of the database implementation.
+*   **Feature-Based Architecture (Frontend):**
+    *   Code is organized by feature modules (e.g., `features/auth`, `features/todos`) rather than generic technical roles. Each feature encapsulates its own `components`, API `services`, and state `store`.
+*   **State Management (Frontend):**
+    *   Global state is managed via **Zustand**, replacing standard React Context for better performance and a predictable flow.
 *   **Singleton Pattern (Creational):**
     *   *Frontend:* Decouples Axios into a unified client instance at `frontend/src/lib/axios.js`. All API calls share this single instance instead of instantiating new request handlers.
     *   *Backend:* Mongoose connection pool acts as a globally cached singleton instance in `backend/src/config/db.js`, sharing database connection handshakes across routes.
@@ -76,7 +83,7 @@ TodoX incorporates industry-standard architectural and structural design pattern
 
 ### SOLID Principles
 *   **Single Responsibility Principle (SRP):**
-    *   Every backend module maintains a single axis of change. Decoupled into `models/` (schema definition), `routes/` (URL endpoint declarations), `controllers/` (business logic and DB actions), and `config/` (environment hookups).
+    *   Every module maintains a single axis of change. Backend is decoupled into `models/`, `routes/`, `controllers/`, `services/`, `repositories/`, and `config/`. Frontend encapsulates logic into features.
 
 ---
 

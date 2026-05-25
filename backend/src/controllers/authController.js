@@ -1,15 +1,7 @@
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import User from "../model/user.js";
+import authService from "../services/authService.js";
 
-// Helper to sign JWT and send cookie
-const sendTokenResponse = (user, statusCode, res) => {
-    const token = jwt.sign(
-        { id: user._id },
-        process.env.JWT_SECRET || "TodoX_SuperSecret_JWT_Key_2026_Change_Me",
-        { expiresIn: process.env.JWT_LIFETIME || "7d" }
-    );
-
+// Helper to send token response
+const sendTokenResponse = (user, token, statusCode, res) => {
     const cookieOptions = {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         httpOnly: true,
@@ -36,62 +28,24 @@ export const registerUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // 1. Validation
         if (!username) {
-            return res.status(400).json({
-                success: false,
-                message: "Username is required.",
-                field: "username"
-            });
+            return res.status(400).json({ success: false, message: "Username is required.", field: "username" });
         }
         if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: "Email is required.",
-                field: "email"
-            });
+            return res.status(400).json({ success: false, message: "Email is required.", field: "email" });
         }
         if (!password) {
-            return res.status(400).json({
-                success: false,
-                message: "Password is required.",
-                field: "password"
-            });
+            return res.status(400).json({ success: false, message: "Password is required.", field: "password" });
         }
 
-        // 2. Check if user already exists
-        const emailExists = await User.findOne({ email: email.toLowerCase() });
-        if (emailExists) {
-            return res.status(400).json({
-                success: false,
-                message: "Email is already registered.",
-                field: "email"
-            });
-        }
-
-        const usernameExists = await User.findOne({ username });
-        if (usernameExists) {
-            return res.status(400).json({
-                success: false,
-                message: "Username is already taken.",
-                field: "username"
-            });
-        }
-
-        // 3. Create user
-        const user = await User.create({
-            username,
-            email: email.toLowerCase(),
-            password,
-        });
-
-        // 4. Send token
-        sendTokenResponse(user, 201, res);
+        const { user, token } = await authService.register(username, email, password);
+        sendTokenResponse(user, token, 201, res);
     } catch (error) {
         console.error("Register Error:", error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
             message: error.message || "Registration failed. Please try again.",
+            field: error.field || undefined
         });
     }
 };
@@ -101,54 +55,23 @@ export const registerUser = async (req, res) => {
 // @access  Public
 export const loginUser = async (req, res) => {
     try {
-        const { identifier, password } = req.body; // identifier can be username or email
+        const { identifier, password } = req.body;
 
-        // 1. Validation
         if (!identifier) {
-            return res.status(400).json({
-                success: false,
-                message: "Username or email is required.",
-                field: "identifier"
-            });
+            return res.status(400).json({ success: false, message: "Username or email is required.", field: "identifier" });
         }
         if (!password) {
-            return res.status(400).json({
-                success: false,
-                message: "Password is required.",
-                field: "password"
-            });
+            return res.status(400).json({ success: false, message: "Password is required.", field: "password" });
         }
 
-        // 2. Find user (search email or username)
-        const user = await User.findOne({
-            $or: [{ email: identifier.toLowerCase() }, { username: identifier }],
-        });
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid login credentials.",
-                field: "identifier"
-            });
-        }
-
-        // 3. Match password
-        const isMatch = await user.matchPassword(password);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid login credentials.",
-                field: "password"
-            });
-        }
-
-        // 4. Send token
-        sendTokenResponse(user, 200, res);
+        const { user, token } = await authService.login(identifier, password);
+        sendTokenResponse(user, token, 200, res);
     } catch (error) {
         console.error("Login Error:", error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: "Authentication error. Please try again.",
+            message: error.statusCode ? error.message : "Authentication error. Please try again.",
+            field: error.field || undefined
         });
     }
 };
@@ -186,37 +109,11 @@ export const forgotPassword = async (req, res) => {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: "Please enter your registered email address.",
-                field: "email"
-            });
+            return res.status(400).json({ success: false, message: "Please enter your registered email address.", field: "email" });
         }
 
-        const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "No account found with this email address.",
-                field: "email"
-            });
-        }
+        const resetToken = await authService.processForgotPassword(email);
 
-        // 1. Generate reset token
-        const resetToken = crypto.randomBytes(20).toString("hex");
-
-        // 2. Hash and save to database
-        user.resetPasswordToken = crypto
-            .createHash("sha256")
-            .update(resetToken)
-            .digest("hex");
-
-        // Set expire time (15 mins)
-        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
-
-        await user.save();
-
-        // 3. Mock Email / Print in development console
         console.log("\n=================== PASSWORD RESET SYSTEM ===================");
         console.log(`Email Requested: ${email}`);
         console.log(`Reset Token: ${resetToken}`);
@@ -226,13 +123,14 @@ export const forgotPassword = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Password reset instructions generated.",
-            token: resetToken, // Returned in JSON response for sandbox testing convenience
+            token: resetToken, 
         });
     } catch (error) {
         console.error("Forgot Password Error:", error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: "Unable to process request. Please try again later.",
+            message: error.statusCode ? error.message : "Unable to process request. Please try again later.",
+            field: error.field || undefined
         });
     }
 };
@@ -246,47 +144,17 @@ export const resetPassword = async (req, res) => {
         const resetToken = req.params.resettoken;
 
         if (!password || password.length < 6) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid password of at least 6 characters.",
-                field: "password"
-            });
+            return res.status(400).json({ success: false, message: "Please provide a valid password of at least 6 characters.", field: "password" });
         }
 
-        // 1. Hash resettoken to compare with database
-        const hashedToken = crypto
-            .createHash("sha256")
-            .update(resetToken)
-            .digest("hex");
-
-        // 2. Find user with valid token and expiry not passed
-        const user = await User.findOne({
-            resetPasswordToken: hashedToken,
-            resetPasswordExpire: { $gt: Date.now() },
-        });
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid, broken, or expired reset token.",
-                field: "token"
-            });
-        }
-
-        // 3. Set new password, clear reset fields
-        user.password = password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
-
-        await user.save();
-
-        // 4. Login immediately after password reset
-        sendTokenResponse(user, 200, res);
+        const { user, token } = await authService.processResetPassword(resetToken, password);
+        sendTokenResponse(user, token, 200, res);
     } catch (error) {
         console.error("Reset Password Error:", error);
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             success: false,
-            message: "Unable to reset password. Please try again.",
+            message: error.statusCode ? error.message : "Unable to reset password. Please try again.",
+            field: error.field || undefined
         });
     }
 };
