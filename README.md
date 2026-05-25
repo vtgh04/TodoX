@@ -29,13 +29,9 @@
 - [🛠️ Tech Stack & Decisions](#️-tech-stack--decisions)
 - [📂 Project Directory Structure](#-project-directory-structure)
 - [🚀 Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation & Quick Start](#installation--quick-start)
 - [☁️ Cloud Deployment](#️-cloud-deployment)
 - [🔌 API Reference](#-api-reference)
 - [🤝 Contributing Guide](#-contributing-guide)
-  - [Contribution Steps](#contribution-steps)
-  - [Commit Message Conventions](#commit-message-conventions)
 - [📄 License](#-license)
 
 ---
@@ -47,13 +43,16 @@ TodoX leverages a decoupled Client-Server architecture, ensuring optimal separat
 ![System Architecture](doc/SVG/architecture.svg)
 
 * **Vite API Reverse Proxy:** The frontend dev server utilizes a custom reverse proxy to direct `/api` calls to port `5001`. This eliminates CORS preflight overhead locally while preserving clean relative endpoints in the React codebase.
-* **Controller Isolation Pattern:** Backend routing matches declarative middleware endpoints, keeping MongoDB queries and status tracking logic isolated inside controller layers.
+* **Separation of Layers:** 
+  * **Frontend:** Refactored into a **Feature-Based Architecture**. Key business capabilities (like Auth, Todos) own their local UI components, state stores (Zustand), and Axios integrations.
+  * **Backend:** Leverages an evolved **MVC pattern** with distinct Service and Repository layers to decouple network protocols, business decisions, and database operations.
 * **Fail-Safe Startup:** Port binding occurs immediately on launch to keep the dev server proxy stable. Database connection attempts run asynchronously and report faults gracefully instead of force-crashing the process.
 
 ---
 
 ## ⚡ Core Features
 
+* **🔐 Full Authentication & Session Management:** Dynamic login, registration, and forget/reset password pipelines protected with securely signed JSON Web Tokens (JWT) stored in HTTP-Only cookies.
 * **📅 Timezone-Safe Date Filters (UTC+7):** Back-end query filters normalize timestamps to Vietnam Standard Time, preventing timezone shifts and keeping "Today" or specific date filters aligned to calendar days.
 * **🗓️ Controlled Transparent DatePicker:** An invisible native date picker overlays the calendar icon button. Supports standard `showPicker()` integration with clean fallbacks for mobile browsers.
 * **🌐 Persistent Dual-Language Context:** Fast switching between Vietnamese (🇻🇳) and English (🇺🇸) with immediate translation of dynamic counters, inputs, tooltips, and system notifications. Choices persist across reloads via `localStorage`.
@@ -92,6 +91,7 @@ TodoX incorporates industry-standard architectural and structural design pattern
 ### Frontend
 * **React 19 & Lucide Icons:** Single-page rendering, state hooks, and crisp SVG visual cues.
 * **Tailwind CSS v4 & custom UI primitives:** Native CSS variables, fast build compilation, and rich glassmorphism styles.
+* **Zustand:** Lightweight, hook-based global state management.
 * **Axios Instance:** Centralized config with base URLs adapted automatically to the host environment.
 
 ### Backend
@@ -108,35 +108,60 @@ TodoX/
 ├── doc/
 │   └── SVG/
 │       ├── banner.svg              # Marketing Banner
-│       └── architecture.svg        # System Architecture Diagram
+│       ├── architecture.svg        # System Architecture Diagram
+│       └── design_patterns.svg     # Design Patterns Flow Diagram
 ├── backend/
 │   ├── src/
 │   │   ├── config/
 │   │   │   └── db.js               # MongoDB connection & Google DNS setup
+│   │   ├── repositories/
+│   │   │   ├── authRepository.js   # DB transactions for authentication
+│   │   │   └── taskRepository.js   # DB queries for todo tasks
+│   │   ├── services/
+│   │   │   ├── authService.js      # Business rules for login/register/reset
+│   │   │   └── taskService.js      # Filtering and pagination logic
 │   │   ├── controllers/
-│   │   │   └── taskController.js   # CRUD & Query Filtering logic
+│   │   │   ├── authController.js   # Thin route endpoints for authentication
+│   │   │   └── taskController.js   # Thin route endpoints for tasks
 │   │   ├── model/
-│   │   │   └── task.js             # Mongoose Schema & Status definition
+│   │   │   ├── user.js             # Mongoose User Schema
+│   │   │   └── task.js             # Mongoose Task Schema
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js   # Protect/Me verify JWT cookie middleware
 │   │   ├── routes/
-│   │   │   └── tasksRouters.js     # Router mapping declarations
+│   │   │   ├── authRouters.js      # Express routers for auth
+│   │   │   └── tasksRouters.js     # Express routers for tasks
 │   │   └── server.js               # Express server configuration
 │   ├── .env                        # Local database credentials (ignored)
 │   └── package.json                # Server scripts & dependencies
 └── frontend/
     ├── src/
+    │   ├── features/
+    │   │   ├── auth/
+    │   │   │   ├── components/     # Feature components (LoginForm, RegisterForm)
+    │   │   │   ├── services/
+    │   │   │   │   └── authService.js # API call wrappers for Auth
+    │   │   │   └── store/
+    │   │   │       └── useAuthStore.js # Zustand Auth state store
+    │   │   └── todos/
+    │   │       ├── components/     # Feature components (taskList, addTask)
+    │   │       ├── services/
+    │   │       │   └── todoService.js # API call wrappers for Todos
+    │   │       └── store/
+    │   │           └── useTodoStore.js # Zustand Todo state store
     │   ├── components/
     │   │   ├── Header.jsx          # Header with localized subtitle
-    │   │   ├── addTask.jsx         # Input form
     │   │   ├── StatsAndFilters.jsx # Filtering tabs & metrics badges
-    │   │   ├── taskList.jsx        # Localized list renderer
     │   │   ├── TaskListPagination.jsx # Page controller
     │   │   ├── DateTimeFilter.jsx  # Customized calendar filter
     │   │   └── LanguageSwitcher.jsx # Floating bilingual switcher
     │   ├── lib/
     │   │   ├── axios.js            # Unified Axios instance
     │   │   └── data.js             # Filter constants
-    │   └── pages/
-    │       └── HomePage.jsx        # Root page controller
+    │   ├── pages/
+    │   │   ├── HomePage.jsx        # Root dashboard view
+    │   │   └── loginPage.jsx       # Multi-form Authentication portal
+    │   └── App.jsx                 # Entry routing & auth state checker
     └── vite.config.js              # Vite server & proxy configurations
 ```
 
@@ -162,6 +187,7 @@ TodoX/
    ```env
    ConnectionStringMongodb="mongodb+srv://<username>:<password_url_encoded>@<cluster>.mongodb.net/<db_name>?appName=Cluster0"
    PORT=5001
+   JWT_SECRET="YourSuperSecretJWTKey"
    ```
    > [!IMPORTANT]
    > If your Atlas password contains special characters (like `@`), you **must** URL-encode them (e.g. replace `@` with `%40`) inside the connection string to avoid driver connection errors.
@@ -183,14 +209,27 @@ TodoX/
 
 ## 🔌 API Reference
 
-All requests and responses use JSON formatting. The base URL path is `/api/tasks`.
+All requests and responses use JSON formatting.
+
+### 🔐 Authentication API (`/api/auth`)
 
 | Method | Endpoint | Description | Request Body | Response Code |
 | :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/api/tasks` | Retrieve paginated tasks matching query parameters | None | `200 OK` |
-| **POST** | `/api/tasks` | Create a new task | `{ "title": "String" }` | `201 Created` |
-| **PUT** | `/api/tasks/:id` | Update task title, status, or completedAt timestamp | `{ "title": "String", "status": "ACTIVE/COMPLETED" }` | `200 OK` |
-| **DELETE** | `/api/tasks/:id` | Purge a task from the database | None | `200 OK` |
+| **POST** | `/api/auth/register` | Register a new user & set JWT in cookie | `{ "username": "...", "email": "...", "password": "..." }` | `201 Created` |
+| **POST** | `/api/auth/login` | Log in user & set JWT in cookie | `{ "identifier": "...", "password": "..." }` | `200 OK` |
+| **POST** | `/api/auth/logout` | Clear user session cookie | None | `200 OK` |
+| **GET** | `/api/auth/me` | Fetch currently authenticated user | None (Requires Auth Cookie) | `200 OK` / `401 Unauthorized` |
+| **POST** | `/api/auth/forgot-password` | Generate reset token in logs | `{ "email": "..." }` | `200 OK` |
+| **POST** | `/api/auth/reset-password/:token` | Reset password using token | `{ "password": "..." }` | `200 OK` |
+
+### 📅 Tasks API (`/api/tasks` - Requires Authentication)
+
+| Method | Endpoint | Description | Request Body | Response Code |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/tasks` | Retrieve paginated tasks for active user | None | `200 OK` |
+| **POST** | `/api/tasks` | Create a task associated with user | `{ "title": "String" }` | `201 Created` |
+| **PUT** | `/api/tasks/:id` | Update task fields (title, status, completedAt) | `{ "title": "String", "status": "ACTIVE/COMPLETED" }` | `200 OK` |
+| **DELETE** | `/api/tasks/:id` | Delete user task | None | `200 OK` |
 
 ---
 
@@ -214,15 +253,6 @@ If you prefer static client hosting:
 1. Connect Vercel to your repository and select the `frontend` sub-directory.
 2. Build Settings: Command = `npm run build`, Output = `dist`.
 3. Add environment variable `VITE_API_URL` pointing to your deployed backend.
-
----
-
-## 🔮 Future Roadmap (AI Integration)
-
-Planned upgrades to extend the platform's capability:
-*   **🤖 AI Task Auto-Prioritization (Gemini API):** Analyze task parameters (deadlines, keywords) to rank tasks dynamically by urgency.
-*   **💡 Smart Sub-task Generation:** Prompt LLMs to break complex task titles down into manageable checklist items automatically.
-*   **📈 Productivity Sentiment Analysis:** Weekly summaries of user completion trends with personalized advice generated by AI.
 
 ---
 
@@ -256,12 +286,11 @@ We welcome contributions from the developer community! Follow these steps to set
    Create a local `.env` inside `backend/` and verify the project compiles and starts correctly:
    ```bash
    npm run build
-   npm run start
    ```
    Implement your changes following the existing code styles and design systems.
 
 6. **Commit and Push:**  
-   Commit your changes using standard conventional commit messages (see format below) and push the branch to your fork:
+   Commit your changes using standard conventional commit messages and push the branch to your fork:
    ```bash
    git add .
    git commit -m "feat: add awesome new feature"
@@ -270,17 +299,6 @@ We welcome contributions from the developer community! Follow these steps to set
 
 7. **Submit a Pull Request:**  
    Go to your fork on GitHub and click the **Compare & pull request** button. Detail your changes and submit the PR targeting the main repository's `main` branch.
-
-### Commit Message Conventions
-
-We enforce [Conventional Commits](https://www.conventionalcommits.org/) to keep the repository history readable and clean:
-
-* `feat:` A new feature for the user (e.g. `feat: add task category support`)
-* `fix:` A bug fix (e.g. `fix: resolve date shifting on query bounds`)
-* `docs:` Documentation changes only (e.g. `docs: update setup guidelines`)
-* `style:` Formatting, semi-colons, white-spaces (no logic changes)
-* `refactor:` Code changes that neither fix a bug nor add a feature
-* `test:` Adding or correcting test cases
 
 ---
 
