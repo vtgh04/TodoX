@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, X } from 'lucide-react';
 
-const DateTimeFilter = ({ timeFilter, setTimeFilter, selectedDate, setSelectedDate }) => {
+const DateTimeFilter = ({ timeFilter, setTimeFilter, selectedDate, setSelectedDate, language }) => {
     const handleDateChange = (e) => {
         const val = e.target.value; // "YYYY-MM-DD"
         if (val) {
@@ -44,7 +44,7 @@ const DateTimeFilter = ({ timeFilter, setTimeFilter, selectedDate, setSelectedDa
                             ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-md shadow-blue-500/5'
                             : 'bg-white border-slate-200 text-slate-400 group-hover:border-blue-300 group-hover:text-slate-600'
                     }`}
-                    title="Chọn ngày cụ thể"
+                    title={language === 'vi' ? "Chọn ngày cụ thể" : "Select custom date"}
                 >
                     <Calendar className="w-4 h-4" />
                 </button>
@@ -71,13 +71,13 @@ const DateTimeFilter = ({ timeFilter, setTimeFilter, selectedDate, setSelectedDa
                     }}
                     className="appearance-none bg-white border border-slate-200 text-slate-700 font-bold px-4 py-2 pr-8 rounded-xl text-xs hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                 >
-                    <option value="all">Tất cả thời gian</option>
-                    <option value="today">Hôm nay</option>
-                    <option value="week">Tuần này</option>
-                    <option value="month">Tháng này</option>
+                    <option value="all">{language === 'vi' ? 'Tất cả thời gian' : 'All time'}</option>
+                    <option value="today">{language === 'vi' ? 'Hôm nay' : 'Today'}</option>
+                    <option value="week">{language === 'vi' ? 'Tuần này' : 'This week'}</option>
+                    <option value="month">{language === 'vi' ? 'Tháng này' : 'This month'}</option>
                     {selectedDate && (
                         <option value="custom">
-                            Ngày: {formatDisplayDate(selectedDate)}
+                            {language === 'vi' ? 'Ngày' : 'Date'}: {formatDisplayDate(selectedDate)}
                         </option>
                     )}
                 </select>
@@ -93,7 +93,7 @@ const DateTimeFilter = ({ timeFilter, setTimeFilter, selectedDate, setSelectedDa
                 <button
                     onClick={clearCustomDate}
                     className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-all cursor-pointer"
-                    title="Xóa bộ lọc ngày"
+                    title={language === 'vi' ? "Xóa bộ lọc ngày" : "Clear date filter"}
                 >
                     <X className="w-3.5 h-3.5" />
                 </button>

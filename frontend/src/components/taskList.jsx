@@ -1,17 +1,21 @@
 import React from 'react';
 import { Trash2, Calendar } from 'lucide-react';
 
-const TaskList = ({ tasks, onToggle, onDelete }) => {
+const TaskList = ({ tasks, onToggle, onDelete, language }) => {
     if (!tasks || tasks.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl border border-slate-100 shadow-sm select-none">
                 <div className="text-blue-100 mb-4 animate-bounce" style={{ animationDuration: '3s' }}>
                     <svg className="w-16 h-16 stroke-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2" />
                     </svg>
                 </div>
-                <p className="text-slate-500 font-bold text-sm">Tuyệt vời! Không còn việc gì cần làm.</p>
-                <p className="text-slate-400 text-xs mt-1 font-semibold">Bắt đầu ngày mới bằng cách lập danh sách công việc cần làm!</p>
+                <p className="text-slate-500 font-bold text-sm">
+                    {language === 'vi' ? 'Tuyệt vời! Không còn việc gì cần làm.' : 'Awesome! No tasks left to do.'}
+                </p>
+                <p className="text-slate-400 text-xs mt-1 font-semibold">
+                    {language === 'vi' ? 'Bắt đầu ngày mới bằng cách lập danh sách công việc cần làm!' : 'Start your day by listing tasks to do!'}
+                </p>
             </div>
         );
     }
@@ -19,7 +23,7 @@ const TaskList = ({ tasks, onToggle, onDelete }) => {
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
-        return date.toLocaleString('vi-VN', {
+        return date.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US', {
             year: 'numeric',
             month: 'numeric',
             day: 'numeric',

@@ -8,7 +8,33 @@ import TaskList from '../components/taskList';
 import TaskListPagination from '../components/tasklistPagination';
 import DateTimeFilter from '../components/DateTimeFilter';
 import Footer from '../components/footer';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { Loader2 } from 'lucide-react';
+
+const translations = {
+    vi: {
+        loading: "Đang tải danh sách công việc...",
+        loadError: "Không thể tải danh sách công việc. Vui lòng thử lại!",
+        addSuccess: "Thêm công việc thành công!",
+        addError: "Không thể thêm công việc!",
+        completeSuccess: "Đã hoàn thành công việc! 🎉",
+        reopenSuccess: "Đã mở lại công việc!",
+        updateError: "Không thể cập nhật công việc!",
+        deleteSuccess: "Đã xoá công việc!",
+        deleteError: "Không thể xoá công việc!",
+    },
+    en: {
+        loading: "Loading task list...",
+        loadError: "Cannot load task list. Please try again!",
+        addSuccess: "Task added successfully!",
+        addError: "Cannot add task!",
+        completeSuccess: "Task completed! 🎉",
+        reopenSuccess: "Task reopened!",
+        updateError: "Cannot update task!",
+        deleteSuccess: "Task deleted!",
+        deleteError: "Cannot delete task!",
+    }
+};
 
 const HomePage = () => {
     const [tasks, setTasks] = useState([]);
@@ -19,6 +45,14 @@ const HomePage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [stats, setStats] = useState({ active: 0, completed: 0 });
     const [loading, setLoading] = useState(true);
+    const [language, setLanguage] = useState(() => {
+        return localStorage.getItem('todo_lang') || 'vi';
+    });
+
+    const handleSetLanguage = (lang) => {
+        setLanguage(lang);
+        localStorage.setItem('todo_lang', lang);
+    };
 
     const fetchTasks = async () => {
         try {
@@ -40,7 +74,7 @@ const HomePage = () => {
             }
         } catch (error) {
             console.error("Lỗi khi tải danh sách công việc:", error);
-            toast.error("Không thể tải danh sách công việc. Vui lòng thử lại!");
+            toast.error(translations[language].loadError);
         } finally {
             setLoading(false);
         }
@@ -58,12 +92,12 @@ const HomePage = () => {
         try {
             const response = await axios.post('/api/tasks', { title });
             if (response.status === 201) {
-                toast.success("Thêm công việc thành công!");
+                toast.success(translations[language].addSuccess);
                 fetchTasks();
             }
         } catch (error) {
             console.error("Lỗi khi thêm công việc:", error);
-            toast.error("Không thể thêm công việc!");
+            toast.error(translations[language].addError);
         }
     };
 
@@ -78,12 +112,16 @@ const HomePage = () => {
             });
 
             if (response.status === 200) {
-                toast.success(newStatus === 'COMPLETED' ? "Đã hoàn thành công việc! 🎉" : "Đã mở lại công việc!");
+                toast.success(
+                    newStatus === 'COMPLETED'
+                        ? translations[language].completeSuccess
+                        : translations[language].reopenSuccess
+                );
                 fetchTasks();
             }
         } catch (error) {
             console.error("Lỗi khi cập nhật công việc:", error);
-            toast.error("Không thể cập nhật công việc!");
+            toast.error(translations[language].updateError);
         }
     };
 
@@ -91,17 +129,20 @@ const HomePage = () => {
         try {
             const response = await axios.delete(`/api/tasks/${id}`);
             if (response.status === 200) {
-                toast.success("Đã xoá công việc!");
+                toast.success(translations[language].deleteSuccess);
                 fetchTasks();
             }
         } catch (error) {
             console.error("Lỗi khi xoá công việc:", error);
-            toast.error("Không thể xoá công việc!");
+            toast.error(translations[language].deleteError);
         }
     };
 
     return (
         <div className="min-h-screen w-full bg-white relative overflow-hidden py-12 flex items-center justify-center"> 
+            {/* Language Switcher */}
+            <LanguageSwitcher language={language} setLanguage={handleSetLanguage} />
+
             {/* Light Sky Blue Glow */}
             <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
@@ -116,29 +157,31 @@ const HomePage = () => {
             <div className="container mx-auto z-10">
                 <div className="w-full max-w-2xl px-6 mx-auto space-y-6">
                     {/* Đầu Trang */}
-                    <Header />
+                    <Header language={language} />
 
                     {/* Tạo Nhiệm Vụ */}
-                    <AddTask onAdd={handleAddTask} />
+                    <AddTask onAdd={handleAddTask} language={language} />
 
                     {/* Thống Kê và Bộ lọc */}
                     <StatsAndFilters 
                         activeFilter={activeFilter} 
                         setActiveFilter={setActiveFilter} 
                         stats={stats} 
+                        language={language}
                     />
 
                     {/* Danh Sách Nhiệm Vụ */}
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm">
                             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-2" />
-                            <p className="text-xs font-semibold">Đang tải danh sách công việc...</p>
+                            <p className="text-xs font-semibold">{translations[language].loading}</p>
                         </div>
                     ) : (
                         <TaskList 
                             tasks={tasks} 
                             onToggle={handleToggleTask} 
                             onDelete={handleDeleteTask} 
+                            language={language}
                         />
                     )}
 
@@ -154,11 +197,12 @@ const HomePage = () => {
                             setTimeFilter={setTimeFilter} 
                             selectedDate={selectedDate}
                             setSelectedDate={setSelectedDate}
+                            language={language}
                         />
                     </div>
 
                     {/* Chân Trang */}
-                    <Footer stats={stats} />
+                    <Footer stats={stats} language={language} />
                 </div>
             </div>
         </div>

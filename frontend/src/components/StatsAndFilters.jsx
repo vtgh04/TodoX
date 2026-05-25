@@ -1,11 +1,11 @@
 import React from 'react';
 import { ListTodo, CheckCircle2, CircleDot } from 'lucide-react';
 
-const StatsAndFilters = ({ activeFilter, setActiveFilter, stats }) => {
+const StatsAndFilters = ({ activeFilter, setActiveFilter, stats, language }) => {
     const filters = [
-        { id: 'ALL', label: 'Tất Cả', icon: ListTodo },
-        { id: 'ACTIVE', label: 'Đang Làm', icon: CircleDot },
-        { id: 'COMPLETED', label: 'Hoàn Thành', icon: CheckCircle2 },
+        { id: 'ALL', label: language === 'vi' ? 'Tất Cả' : 'All', icon: ListTodo },
+        { id: 'ACTIVE', label: language === 'vi' ? 'Đang Làm' : 'Active', icon: CircleDot },
+        { id: 'COMPLETED', label: language === 'vi' ? 'Hoàn Thành' : 'Completed', icon: CheckCircle2 },
     ];
 
     return (
@@ -14,11 +14,11 @@ const StatsAndFilters = ({ activeFilter, setActiveFilter, stats }) => {
             <div className="flex items-center gap-2 text-xs">
                 <span className="px-3 py-1.5 rounded-full font-bold bg-blue-50 text-blue-600 border border-blue-100 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    {stats?.active || 0} đang làm
+                    {stats?.active || 0} {language === 'vi' ? 'đang làm' : 'active'}
                 </span>
                 <span className="px-3 py-1.5 rounded-full font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    {stats?.completed || 0} hoàn thành
+                    {stats?.completed || 0} {language === 'vi' ? 'hoàn thành' : 'completed'}
                 </span>
             </div>
 
