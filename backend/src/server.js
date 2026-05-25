@@ -9,9 +9,15 @@ dotenv.config();
 const PORT = process.env.PORT || 5001
 const app = express();
 
-connectDB();
+
+
+
+app.use(express.json());
 app.use("/api/tasks", taskRouters);
 
-app.listen(5001, () => {
+// Connect to DB asynchronously
+connectDB();
+
+app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
