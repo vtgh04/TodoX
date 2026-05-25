@@ -7,7 +7,7 @@ export const getAllTask = async (req, res) => {
         const { status, timeRange, date, page = 1, limit = 5 } = req.query;
 
         // Build query object
-        const query = {};
+        const query = { user: req.user._id };
 
         // 1. Status Filter
         if (status && status !== "ALL") {
@@ -57,8 +57,8 @@ export const getAllTask = async (req, res) => {
             .limit(limitNum);
 
         // Fetch stats (overall counts) for badges
-        const activeCount = await Task.countDocuments({ status: "ACTIVE" });
-        const completedCount = await Task.countDocuments({ status: "COMPLETED" });
+        const activeCount = await Task.countDocuments({ user: req.user._id, status: "ACTIVE" });
+        const completedCount = await Task.countDocuments({ user: req.user._id, status: "COMPLETED" });
 
         res.status(200).json({
             tasks,
@@ -82,7 +82,7 @@ export const getAllTask = async (req, res) => {
 export const createTask = async (req, res) => {
     try {
         const { title } = req.body;
-        const task = new Task({ title });
+        const task = new Task({ title, user: req.user._id });
 
         const newTask = await task.save();
         res.status(201).json(newTask);
@@ -96,12 +96,13 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res) => {
     try {
         const { title, status, completedAt } = req.body;
-        const upDatedTask = await Task.findByIdAndUpdate(
-            req.params.id, {
-            title,
-            status,
-            completedAt,
-        },
+        const upDatedTask = await Task.findOneAndUpdate(
+            { _id: req.params.id, user: req.user._id },
+            {
+                title,
+                status,
+                completedAt,
+            },
             {
                 returnDocument: 'after'
             }
@@ -120,7 +121,7 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
     try {
-        const deleteTask = await Task.findByIdAndDelete(req.params.id);
+        const deleteTask = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });
         if (!deleteTask) {
             return res.status(404).json({ message: "Không tìm thấy công việc" });
         }

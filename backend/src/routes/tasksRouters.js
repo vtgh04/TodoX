@@ -3,8 +3,11 @@ import { getAllTask } from "../controllers/taskController.js";
 import { createTask } from "../controllers/taskController.js";
 import { updateTask } from "../controllers/taskController.js";
 import { deleteTask } from "../controllers/taskController.js";
+import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
+// Protect all routes below
+router.use(protect);
 
 router.get("/", getAllTask);
 

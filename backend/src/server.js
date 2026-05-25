@@ -1,5 +1,7 @@
 import express from "express";
-import taskRouters from "./routes/tasksRouters.js"
+import cookieParser from "cookie-parser";
+import taskRouters from "./routes/tasksRouters.js";
+import authRouters from "./routes/authRouters.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 import path from "path";
@@ -12,15 +14,14 @@ const PORT = process.env.PORT || 5001
 const app = express();
 const __dirname = path.resolve();
 
-
-
 app.use(express.json());
+app.use(cookieParser());
 
-if (process.env.NODE_ENV !== "production") {
-    app.use(cors({ origin: "http://localhost:5173" }))
-}
+// Enable CORS for frontend dev origins
+app.use(cors({ origin: ["http://localhost:5173", "http://127.0.0.1:5173"], credentials: true }));
 
 // API Routes
+app.use("/api/auth", authRouters);
 app.use("/api/tasks", taskRouters);
 
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../lib/axios';
 import { toast } from 'sonner';
 import Header from '../components/Header';
 import AddTask from '../components/addTask';
@@ -9,7 +9,8 @@ import TaskListPagination from '../components/TaskListPagination';
 import DateTimeFilter from '../components/DateTimeFilter';
 import Footer from '../components/footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const translations = {
     vi: {
@@ -37,6 +38,7 @@ const translations = {
 };
 
 const HomePage = () => {
+    const { user, logout } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [activeFilter, setActiveFilter] = useState('ALL'); // 'ALL', 'ACTIVE', 'COMPLETED'
     const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'week', 'month'
@@ -57,7 +59,7 @@ const HomePage = () => {
     const fetchTasks = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/tasks', {
+            const response = await api.get('/tasks', {
                 params: {
                     status: activeFilter,
                     timeRange: timeFilter,
@@ -90,7 +92,7 @@ const HomePage = () => {
 
     const handleAddTask = async (title) => {
         try {
-            const response = await axios.post('/api/tasks', { title });
+            const response = await api.post('/tasks', { title });
             if (response.status === 201) {
                 toast.success(translations[language].addSuccess);
                 fetchTasks();
@@ -106,7 +108,7 @@ const HomePage = () => {
             const newStatus = currentStatus === 'ACTIVE' ? 'COMPLETED' : 'ACTIVE';
             const completedAt = newStatus === 'COMPLETED' ? new Date() : null;
 
-            const response = await axios.put(`/api/tasks/${id}`, {
+            const response = await api.put(`/tasks/${id}`, {
                 status: newStatus,
                 completedAt
             });
@@ -127,7 +129,7 @@ const HomePage = () => {
 
     const handleDeleteTask = async (id) => {
         try {
-            const response = await axios.delete(`/api/tasks/${id}`);
+            const response = await api.delete(`/tasks/${id}`);
             if (response.status === 200) {
                 toast.success(translations[language].deleteSuccess);
                 fetchTasks();
@@ -138,8 +140,32 @@ const HomePage = () => {
         }
     };
 
+    const handleLogout = async () => {
+        await logout();
+        toast.success(language === 'vi' ? 'Đã đăng xuất! Hẹn gặp lại.' : 'Logged out! See you again.');
+    };
+
     return (
         <div className="min-h-screen w-full bg-white relative overflow-hidden py-12 flex items-center justify-center"> 
+            {/* User Profile & Logout */}
+            {user && (
+                <div className="fixed top-6 left-6 z-50 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl px-4 py-2 shadow-lg shadow-blue-500/5 flex items-center gap-3 select-none transition-all duration-300">
+                    <div className="flex items-center gap-1.5 text-slate-700">
+                        <User className="w-4 h-4 text-slate-500" />
+                        <span className="text-xs font-bold">{user.username}</span>
+                    </div>
+                    <div className="w-[1px] h-4 bg-slate-200" />
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors text-xs font-bold cursor-pointer"
+                        title={language === 'vi' ? 'Đăng xuất' : 'Log out'}
+                    >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>{language === 'vi' ? 'Đăng xuất' : 'Logout'}</span>
+                    </button>
+                </div>
+            )}
+
             {/* Language Switcher */}
             <LanguageSwitcher language={language} setLanguage={handleSetLanguage} />
 
