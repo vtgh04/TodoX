@@ -9,7 +9,7 @@ import TaskListPagination from '../features/todos/components/TaskListPagination'
 import DateTimeFilter from '../features/todos/components/DateTimeFilter';
 import Footer from '../components/footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { Loader2, LogOut, User, List, LayoutGrid } from 'lucide-react';
+import { Loader2, LogOut, User, List, LayoutGrid, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTodoStore } from '../features/todos/store/useTodoStore';
 
@@ -57,6 +57,8 @@ const HomePage = () => {
     const [selectedDate, setSelectedDate] = useState(null); // YYYY-MM-DD
     const [page, setPage] = useState(1);
     const [viewMode, setViewMode] = useState('list'); // 'list' | 'board'
+    const [searchQuery, setSearchQuery] = useState('');
+    const [priorityFilter, setPriorityFilter] = useState('ALL'); // 'ALL', 'Low', 'Medium', 'High'
     
     const [language, setLanguage] = useState(() => {
         return localStorage.getItem('todo_lang') || 'vi';
@@ -149,6 +151,17 @@ const HomePage = () => {
         toast.success(language === 'vi' ? 'Đã đăng xuất! Hẹn gặp lại.' : 'Logged out! See you again.');
     };
 
+    // Client-side instant filtering (AC 1: latency < 50ms)
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch = searchQuery.trim() === '' || 
+            task.title.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesPriority = priorityFilter === 'ALL' || 
+            task.priority === priorityFilter;
+
+        return matchesSearch && matchesPriority;
+    });
+
     return (
         <div className="min-h-screen w-full bg-white relative overflow-hidden py-12 flex items-center justify-center"> 
             {/* User Profile & Logout */}
@@ -224,6 +237,36 @@ const HomePage = () => {
                         </div>
                     </div>
 
+                    {/* Instant Search & Priority Filter Row */}
+                    <div className="flex flex-col sm:flex-row gap-3 w-full p-4 bg-white/70 backdrop-blur-md rounded-2xl border border-slate-100 shadow-sm select-none">
+                        <div className="relative flex-1">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="text"
+                                placeholder={language === 'vi' ? 'Tìm kiếm nhanh công việc...' : 'Quick search tasks...'}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-slate-50/80 border border-slate-200/80 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none transition-all text-slate-700 font-medium"
+                            />
+                        </div>
+                        
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <span className="text-slate-400 text-xs font-semibold">{language === 'vi' ? 'Lọc ưu tiên:' : 'Priority Filter:'}</span>
+                            <select
+                                value={priorityFilter}
+                                onChange={(e) => setPriorityFilter(e.target.value)}
+                                className="bg-slate-50 border border-slate-200/80 rounded-xl py-2 px-3 text-xs focus:border-blue-400 focus:outline-none transition-all text-slate-600 font-semibold cursor-pointer"
+                            >
+                                <option value="ALL">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                                <option value="Low">{language === 'vi' ? 'Thấp (Low)' : 'Low'}</option>
+                                <option value="Medium">{language === 'vi' ? 'Trung bình (Medium)' : 'Medium'}</option>
+                                <option value="High">{language === 'vi' ? 'Cao (High)' : 'High'}</option>
+                            </select>
+                        </div>
+                    </div>
+
                     {/* Danh Sách Nhiệm Vụ */}
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm">
@@ -232,14 +275,14 @@ const HomePage = () => {
                         </div>
                     ) : viewMode === 'list' ? (
                         <TaskList 
-                            tasks={tasks} 
+                            tasks={filteredTasks} 
                             onToggle={handleToggleTask} 
                             onDelete={handleDeleteTask} 
                             language={language}
                         />
                     ) : (
                         <BoardView 
-                            tasks={tasks} 
+                            tasks={filteredTasks} 
                             onToggle={handleToggleTask} 
                             onDelete={handleDeleteTask} 
                             language={language}
