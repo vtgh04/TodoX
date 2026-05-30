@@ -5,6 +5,10 @@ class TaskRepository {
         return await Task.countDocuments(query);
     }
 
+    async findTask(query) {
+        return await Task.findOne(query);
+    }
+
     async findTasks(query, sort, skip, limit) {
         return await Task.find(query)
             .sort(sort)

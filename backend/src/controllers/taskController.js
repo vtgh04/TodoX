@@ -12,11 +12,15 @@ export const getAllTask = async (req, res) => {
 
 export const createTask = async (req, res) => {
     try {
-        const newTask = await taskService.createTask(req.user._id, req.body.title);
+        const { title, priority } = req.body;
+        const newTask = await taskService.createTask(req.user._id, title, priority);
         res.status(201).json(newTask);
     } catch (error) {
         console.error("Lỗi hệ thống createTask: " + error);
-        res.status(500).json({ message: "Lỗi hệ thống" });
+        res.status(error.statusCode || 500).json({ 
+            message: error.message || "Lỗi hệ thống", 
+            field: error.field 
+        });
     }
 }
 
@@ -28,6 +32,7 @@ export const updateTask = async (req, res) => {
             {
                 title: req.body.title,
                 status: req.body.status,
+                priority: req.body.priority,
                 completedAt: req.body.completedAt,
             }
         );
@@ -39,7 +44,10 @@ export const updateTask = async (req, res) => {
         res.status(200).json(upDatedTask);
     } catch (error) {
         console.error("Lỗi hệ thống updateTask: " + error);
-        res.status(500).json({ message: "Lỗi hệ thống" });
+        res.status(error.statusCode || 500).json({ 
+            message: error.message || "Lỗi hệ thống", 
+            field: error.field 
+        });
     }
 }
 

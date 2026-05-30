@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import api from '../lib/axios';
 import { toast } from 'sonner';
 import Header from '../components/Header';
 import AddTask from '../features/todos/components/addTask';
 import StatsAndFilters from '../features/todos/components/StatsAndFilters';
 import TaskList from '../features/todos/components/taskList';
+import BoardView from '../features/todos/components/BoardView';
 import TaskListPagination from '../features/todos/components/TaskListPagination';
 import DateTimeFilter from '../features/todos/components/DateTimeFilter';
 import Footer from '../components/footer';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { Loader2, LogOut, User } from 'lucide-react';
+import { Loader2, LogOut, User, List, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTodoStore } from '../features/todos/store/useTodoStore';
 
 const translations = {
     vi: {
@@ -39,14 +40,24 @@ const translations = {
 
 const HomePage = () => {
     const { user, logout } = useAuth();
-    const [tasks, setTasks] = useState([]);
+    const {
+        tasks,
+        stats,
+        pagination,
+        loading,
+        fetchTasks,
+        createTask,
+        updateTaskStatus,
+        deleteTask,
+        processSyncQueue
+    } = useTodoStore();
+
     const [activeFilter, setActiveFilter] = useState('ALL'); // 'ALL', 'ACTIVE', 'COMPLETED'
     const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'today', 'week', 'month'
     const [selectedDate, setSelectedDate] = useState(null); // YYYY-MM-DD
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [stats, setStats] = useState({ active: 0, completed: 0 });
-    const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState('list'); // 'list' | 'board'
+    
     const [language, setLanguage] = useState(() => {
         return localStorage.getItem('todo_lang') || 'vi';
     });
@@ -56,87 +67,80 @@ const HomePage = () => {
         localStorage.setItem('todo_lang', lang);
     };
 
-    const fetchTasks = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get('/tasks', {
-                params: {
-                    status: activeFilter,
-                    timeRange: timeFilter,
-                    date: selectedDate,
-                    page: page,
-                    limit: 5
-                }
-            });
-
-            if (response.data) {
-                setTasks(response.data.tasks || []);
-                setTotalPages(response.data.pagination?.totalPages || 1);
-                setStats(response.data.stats || { active: 0, completed: 0 });
-            }
-        } catch (error) {
-            console.error("Lỗi khi tải danh sách công việc:", error);
-            toast.error(translations[language].loadError);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Load tasks from Zustand store when filters change
     useEffect(() => {
-        fetchTasks();
+        fetchTasks({ activeFilter, timeFilter, selectedDate, page });
     }, [activeFilter, timeFilter, selectedDate, page]);
 
+    // Reset page to 1 when filters change
     useEffect(() => {
         setPage(1);
     }, [activeFilter, timeFilter, selectedDate]);
 
-    const handleAddTask = async (title) => {
-        try {
-            const response = await api.post('/tasks', { title });
-            if (response.status === 201) {
+    // Handle offline auto-sync listeners
+    useEffect(() => {
+        const handleOnline = () => {
+            toast.success(language === 'vi' ? 'Đã khôi phục kết nối! Đang tự động đồng bộ dữ liệu...' : 'Connection restored! Auto-syncing data...');
+            processSyncQueue({ activeFilter, timeFilter, selectedDate, page });
+        };
+        const handleOffline = () => {
+            toast.warning(language === 'vi' ? 'Mất kết nối mạng. Đã chuyển sang chế độ ngoại tuyến.' : 'Network lost. Switched to offline mode.');
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        // Attempt sync on mount if online
+        if (navigator.onLine) {
+            processSyncQueue({ activeFilter, timeFilter, selectedDate, page });
+        }
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, [activeFilter, timeFilter, selectedDate, page, language]);
+
+    const handleAddTask = async (title, priority) => {
+        const res = await createTask(title, priority, { activeFilter, timeFilter, selectedDate, page });
+        if (res.success) {
+            if (res.offline) {
+                toast.info(language === 'vi' ? 'Lưu tạm thời ngoại tuyến thành công!' : 'Saved offline temporarily!');
+            } else {
                 toast.success(translations[language].addSuccess);
-                fetchTasks();
             }
-        } catch (error) {
-            console.error("Lỗi khi thêm công việc:", error);
-            toast.error(translations[language].addError);
+        } else {
+            toast.error(res.error?.message || translations[language].addError);
         }
     };
 
-    const handleToggleTask = async (id, currentStatus) => {
-        try {
-            const newStatus = currentStatus === 'ACTIVE' ? 'COMPLETED' : 'ACTIVE';
-            const completedAt = newStatus === 'COMPLETED' ? new Date() : null;
-
-            const response = await api.put(`/tasks/${id}`, {
-                status: newStatus,
-                completedAt
-            });
-
-            if (response.status === 200) {
+    const handleToggleTask = async (id, newStatus) => {
+        const res = await updateTaskStatus(id, newStatus, { activeFilter, timeFilter, selectedDate, page });
+        if (res.success) {
+            if (res.offline) {
+                toast.info(language === 'vi' ? 'Cập nhật tạm thời ngoại tuyến!' : 'Updated offline temporarily!');
+            } else {
                 toast.success(
                     newStatus === 'COMPLETED'
                         ? translations[language].completeSuccess
                         : translations[language].reopenSuccess
                 );
-                fetchTasks();
             }
-        } catch (error) {
-            console.error("Lỗi khi cập nhật công việc:", error);
-            toast.error(translations[language].updateError);
+        } else {
+            toast.error(res.error?.message || translations[language].updateError);
         }
     };
 
     const handleDeleteTask = async (id) => {
-        try {
-            const response = await api.delete(`/tasks/${id}`);
-            if (response.status === 200) {
+        const res = await deleteTask(id, { activeFilter, timeFilter, selectedDate, page });
+        if (res.success) {
+            if (res.offline) {
+                toast.info(language === 'vi' ? 'Xoá tạm thời ngoại tuyến!' : 'Deleted offline temporarily!');
+            } else {
                 toast.success(translations[language].deleteSuccess);
-                fetchTasks();
             }
-        } catch (error) {
-            console.error("Lỗi khi xoá công việc:", error);
-            toast.error(translations[language].deleteError);
+        } else {
+            toast.error(res.error?.message || translations[language].deleteError);
         }
     };
 
@@ -181,20 +185,44 @@ const HomePage = () => {
             />
 
             <div className="container mx-auto z-10">
-                <div className="w-full max-w-2xl px-6 mx-auto space-y-6">
+                <div className="w-full max-w-4xl px-6 mx-auto space-y-6">
                     {/* Đầu Trang */}
                     <Header language={language} />
 
                     {/* Tạo Nhiệm Vụ */}
                     <AddTask onAdd={handleAddTask} language={language} />
 
-                    {/* Thống Kê và Bộ lọc */}
-                    <StatsAndFilters 
-                        activeFilter={activeFilter} 
-                        setActiveFilter={setActiveFilter} 
-                        stats={stats} 
-                        language={language}
-                    />
+                    {/* Bộ lọc Thống Kê & View mode */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-md p-3 rounded-2xl border border-slate-100 shadow-sm">
+                        <StatsAndFilters 
+                            activeFilter={activeFilter} 
+                            setActiveFilter={setActiveFilter} 
+                            stats={stats} 
+                            language={language}
+                        />
+                        
+                        {/* View Mode Toggle */}
+                        <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/50 self-end sm:self-auto select-none">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <List className="w-3.5 h-3.5" />
+                                <span>{language === 'vi' ? 'Danh sách' : 'List'}</span>
+                            </button>
+                            <button
+                                onClick={() => setViewMode('board')}
+                                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    viewMode === 'board' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <LayoutGrid className="w-3.5 h-3.5" />
+                                <span>{language === 'vi' ? 'Bảng' : 'Board'}</span>
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Danh Sách Nhiệm Vụ */}
                     {loading ? (
@@ -202,8 +230,15 @@ const HomePage = () => {
                             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-2" />
                             <p className="text-xs font-semibold">{translations[language].loading}</p>
                         </div>
-                    ) : (
+                    ) : viewMode === 'list' ? (
                         <TaskList 
+                            tasks={tasks} 
+                            onToggle={handleToggleTask} 
+                            onDelete={handleDeleteTask} 
+                            language={language}
+                        />
+                    ) : (
+                        <BoardView 
                             tasks={tasks} 
                             onToggle={handleToggleTask} 
                             onDelete={handleDeleteTask} 
@@ -215,7 +250,7 @@ const HomePage = () => {
                     <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
                         <TaskListPagination 
                             page={page} 
-                            totalPages={totalPages} 
+                            totalPages={pagination.totalPages || 1} 
                             setPage={setPage} 
                             language={language}
                         />
