@@ -9,6 +9,16 @@ import cors from "cors";
 
 dotenv.config();
 
+// Ensure JWT_SECRET is configured
+if (!process.env.JWT_SECRET) {
+    if (process.env.NODE_ENV === "production") {
+        console.error("FATAL ERROR: JWT_SECRET environment variable is not defined!");
+        process.exit(1);
+    } else {
+        console.warn("WARNING: JWT_SECRET environment variable is not defined. Using a temporary key for local development.");
+        process.env.JWT_SECRET = "temp_development_key_not_secure_change_me_in_production";
+    }
+}
 
 const PORT = process.env.PORT || 5001
 const app = express();

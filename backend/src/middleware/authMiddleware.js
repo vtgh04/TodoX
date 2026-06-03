@@ -24,7 +24,7 @@ export const protect = async (req, res, next) => {
 
     try {
         // 3. Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || "TodoX_SuperSecret_JWT_Key_2026_Change_Me");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // 4. Get user from token decoded payload
         req.user = await User.findById(decoded.id).select("-password");

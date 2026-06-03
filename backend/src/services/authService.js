@@ -7,7 +7,7 @@ class AuthService {
     generateToken(user) {
         return jwt.sign(
             { id: user._id },
-            process.env.JWT_SECRET || "TodoX_SuperSecret_JWT_Key_2026_Change_Me",
+            process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_LIFETIME || "7d" }
         );
     }
